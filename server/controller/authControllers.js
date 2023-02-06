@@ -21,9 +21,9 @@ const createUsers = (req, res) => {
 
         insertIntoUsers(hostName, uuid)
 
-        res.json({hostname: hostName, uuid: uuid})
+        res.status(200).json({hostname: hostName, uuid: uuid})
     }else{
-        res.json({hostname: hostName, uuid: cookie})
+        res.status(200).json({hostname: hostName, uuid: cookie})
     }
 }
 

@@ -19,6 +19,17 @@ const insertIntoUsers = async (hostname, uuid) => {
     }
 }
 
+const insertIntoTask = async (taskName, date, uuid) => {
+    try{
+        const client = await pool.connect()
+        client.query(`INSERT INTO task (task_name, date_created, uuid) VALUES ('${taskName}', '${date}', '${uuid}')`)
+        client.release()
+    } catch (err) {
+        console.log(err)
+    }
+}
+
 module.exports = {
-    insertIntoUsers
+    insertIntoUsers,
+    insertIntoTask
 }
