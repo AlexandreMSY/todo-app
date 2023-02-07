@@ -1,6 +1,6 @@
 const uuidGen = require('uuid')
 const os = require('os')
-const { insertIntoUsers } = require('../module/dbOperations')
+const DataBaseOperations = require('../module/dbOperations')
 
 const cookieOptions = {
     //domain: 'http://localhost:5000/auth',
@@ -16,10 +16,10 @@ const createUsers = (req, res) => {
 
     if(!cookie){
         const uuid = uuidGen.v4()
+        let database = new DataBaseOperations(uuid)
 
         res.cookie('user', uuid, cookieOptions)
-
-        insertIntoUsers(hostName, uuid)
+        database.insertIntoUsers(hostName)
 
         res.status(200).json({hostname: hostName, uuid: uuid})
     }else{
