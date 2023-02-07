@@ -57,7 +57,7 @@ class DatabaseOperations{
     }
 
     async getAllTasks(){
-        const text = `SELECT task_name, date_created, uuid FROM task`
+        const text = `SELECT task_name, date_created FROM task WHERE uuid = '${this.#uuid}'`
         try{
             const client = await this.#pool.connect()
             const {rows} = await client.query(text)
