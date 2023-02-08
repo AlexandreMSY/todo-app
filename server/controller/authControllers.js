@@ -1,6 +1,7 @@
 const uuidGen = require('uuid')
 const os = require('os')
 const DataBaseOperations = require('../module/dbOperations')
+const { log } = require('console')
 
 const cookieOptions = {
     //domain: 'http://localhost:5000/auth',
@@ -13,6 +14,8 @@ const cookieOptions = {
 const createUsers = (req, res) => {
     const cookie = req.cookies.user
     const hostName = os.hostname()
+
+    log(cookie)
 
     if(!cookie){
         const uuid = uuidGen.v4()

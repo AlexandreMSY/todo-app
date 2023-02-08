@@ -19,11 +19,17 @@ const createTask = async (req, res) => {
 
 const allTasks = async (req, res) => {
     const cookieUuid = req.cookies.user
-    database.setUuid(cookieUuid)
-    const rows = await database.getAllTasks()
-    res.status(200).json({uuid: cookieUuid, rows: rows})
-}
+    const { uuid } = req.body
+    const { taskname, afterdate, beforedate } = req.query
 
+    database.setUuid(uuid)
+    try{
+        const rows = await database.getAllTasks(taskname, afterdate, beforedate)
+        res.status(200).json({uuid: uuid, rows: rows})
+    }catch(err){
+        console.log(err)
+    }
+}
 
 
 module.exports = {

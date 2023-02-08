@@ -56,8 +56,23 @@ class DatabaseOperations{
         }
     }
 
-    async getAllTasks(){
-        const text = `SELECT task_name, date_created FROM task WHERE uuid = '${this.#uuid}'`
+    async getAllTasks(taskName, afterDate, beforeDate){
+        let text = `SELECT task_name, date_created FROM task WHERE uuid = '${this.#uuid}'`
+        let query = "";
+        
+        if(taskName && (!afterDate || !beforeDate)){
+            query = ` AND task_name ILIKE '%${taskName}%'`
+            text = text + query
+        }else if (taskName && (afterDate || beforeDate)){
+            query = ` AND task_name ILIKE '%${taskName}%' AND ${afterDate ? `date_created > '${afterDate}'` : `date_created < '${beforeDate}'`}`
+            text = text + query
+        }else if (!taskName && (afterDate || beforeDate)){
+            query = ` AND ${afterDate ? `date_created > '${afterDate}'` : `date_created < '${beforeDate}'`}`
+            text = text + query
+        }
+
+        console.log(text)
+
         try{
             const client = await this.#pool.connect()
             const {rows} = await client.query(text)
