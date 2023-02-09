@@ -3,7 +3,7 @@ const dbOperations = require('../module/dbOperations')
 var database = new dbOperations()
 
 const createTask = async (req, res) => {
-    const { taskName, dateCreated, uuid} = req.body
+    const { taskName, dateCreated, uuid } = req.body
     database.setUuid(uuid)
     console.log(database.getUuid())
 
@@ -31,8 +31,21 @@ const allTasks = async (req, res) => {
     }
 }
 
+const updateTask = async (req, res) => {
+    const { taskid, newTaskName, uuid } = req.body
+    let status = ''
+
+    if(taskid && newTaskName && uuid){
+        status = await database.updateTask(taskid, newTaskName, uuid)
+        res.status(200).json({success: true, msg: status})
+    }else{
+        res.json({success: false, msg: 'missing info'})
+    }
+}
+
 
 module.exports = {
     createTask,
-    allTasks
+    allTasks,
+    updateTask
 }

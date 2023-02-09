@@ -84,6 +84,32 @@ class DatabaseOperations{
         }
     }
 
+    async updateTask(taskId, newTaskName, uuid){
+        const text = `UPDATE task SET task_name = '${newTaskName}' WHERE task_id = ${taskId} AND uuid = '${uuid}'`
+        const verifyTask = `SELECT task_id, task_name, date_created FROM task WHERE task_id = ${taskId} AND uuid = '${uuid}'`
+
+        try{
+            const client = await this.#pool.connect()
+            const {rows} = await client.query(verifyTask)
+
+            console.log(rows)
+
+            if(rows.length > 0){
+                await client.query(text)
+                client.release()
+                let taskId = rows[0].task_id
+                return `updated task id ${taskId}`
+            }else{
+                client.release()
+                return 'No Tasks Found'
+            }
+            
+        }catch (err){
+            console.log(err)
+        }
+    }
+
+
 }
 
 module.exports = DatabaseOperations
