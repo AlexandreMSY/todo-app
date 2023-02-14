@@ -1,22 +1,7 @@
 const { Pool } = require('pg')
 require('dotenv').config()
 
-/*var pool = new Pool({
-    user: process.env.DB_USER,
-    port: process.env.DB_PORT,
-    host: process.env.DB_HOST,
-    database: process.env.DB_DATABASE,
-    password: process.env.DB_PASSWORD
-})*/
-
-
 class DatabaseOperations{
-
-    /*constructor(uuid){
-        this.#uuid = uuid
-    }
-
-    constructor(){}*/
 
     #uuid = ''
     #pool = new Pool({
@@ -35,29 +20,29 @@ class DatabaseOperations{
         return this.#uuid
     }
 
-    async insertIntoUsers(hostname){
+    async insertIntoUsers(hostname, uuid){
         try{
             const client = await this.#pool.connect()
-            await client.query(`INSERT INTO user_details (hostname, uuid) VALUES ('${hostname}', '${this.#uuid}')`)
+            await client.query(`INSERT INTO user_details (hostname, uuid) VALUES ('${hostname}', '${uuid}')`)
             client.release()
         } catch (err) {
-            return err.detail
+            throw err
         }
     }
 
-    async insertIntoTask(taskName, date) {
-        const text = `INSERT INTO task (task_name, date_created, uuid) VALUES ('${taskName}', '${date}', '${this.#uuid}')`
+    async insertIntoTask(taskName, date, uuid) {
+        const text = `INSERT INTO task (task_name, date_created, uuid) VALUES ('${taskName}', '${date}', '${uuid}')`
         try{
             const client = await this.#pool.connect()
             await client.query(text)
             client.release()
         }catch(err){
-            return err.detail
+            throw err
         }
     }
 
-    async getAllTasks(taskName, afterDate, beforeDate){
-        let text = `SELECT task_name, date_created FROM task WHERE uuid = '${this.#uuid}'`
+    async getAllTasks(uuid, taskName, afterDate, beforeDate){
+        let text = `SELECT task_name, date_created, task_id FROM task WHERE uuid = '${uuid}'`
         let query = "";
         
         if(taskName && (!afterDate || !beforeDate)){
@@ -80,35 +65,65 @@ class DatabaseOperations{
 
             return rows
         }catch(err){
-            return err.detail
+            throw err
         }
     }
 
-    async updateTask(taskId, newTaskName, uuid){
-        const text = `UPDATE task SET task_name = '${newTaskName}' WHERE task_id = ${taskId} AND uuid = '${uuid}'`
-        const verifyTask = `SELECT task_id, task_name, date_created FROM task WHERE task_id = ${taskId} AND uuid = '${uuid}'`
+    async #taskExists(uuid, taskId){
+        const text = `SELECT task_id, task_name, date_created FROM task WHERE task_id = ${taskId} AND uuid = '${uuid}'`
 
         try{
             const client = await this.#pool.connect()
-            const {rows} = await client.query(verifyTask)
+            const {rows} = await client.query(text)
+            client.release()
 
-            console.log(rows)
+            //console.log(rows)
 
-            if(rows.length > 0){
-                await client.query(text)
-                client.release()
-                let taskId = rows[0].task_id
-                return `updated task id ${taskId}`
-            }else{
-                client.release()
-                return 'No Tasks Found'
-            }
-            
-        }catch (err){
-            console.log(err)
+            return rows.length > 0 ? true : false
+        }catch(err){
+            throw err
         }
     }
 
+    async updateTask(uuid, taskId, newTaskName){
+        const text = `UPDATE task SET task_name = '${newTaskName}' WHERE task_id = ${taskId} AND uuid = '${uuid}'`
+
+        try{
+            const taskExists = await this.#taskExists(uuid, taskId)
+            
+            if(taskExists){
+                const client = await this.#pool.connect()
+                await client.query(text)
+                client.release()
+
+                return true
+            }else{
+                return false
+            }
+        }catch (err){
+            throw err
+        }
+    }
+
+    async deleteTask(uuid, taskId){
+        const text = `DELETE FROM task WHERE task_id = ${taskId} AND uuid = '${uuid}'`
+
+        try{
+            const taskExists = await this.#taskExists(uuid, taskId)
+            
+            if(taskExists){
+                const client = await this.#pool.connect()
+                await client.query(text)
+                client.release()
+
+                return true
+            }else{
+                return false
+            }
+        }catch(err){
+            throw err
+        }
+    }
 
 }
 
