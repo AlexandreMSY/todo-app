@@ -4,7 +4,7 @@ const DataBaseOperations = require('../module/dbOperations')
 const { log } = require('console')
 
 const cookieOptions = {
-    //domain: 'http://localhost:5000/auth',
+    //domain: 'http://127.0.0.1:5173/',
     httpOnly: false,
     sameSite: 'none',
     secure: true,
@@ -22,7 +22,7 @@ const createUsers = (req, res) => {
         let database = new DataBaseOperations(uuid)
 
         res.cookie('user', uuid, cookieOptions)
-        database.insertIntoUsers(hostName)
+        database.insertIntoUsers(hostName, uuid)
 
         res.status(200).json({hostname: hostName, uuid: uuid})
     }else{
