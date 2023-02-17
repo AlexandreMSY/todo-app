@@ -7,15 +7,13 @@
     <title>Document</title>
 </head>
 <body>
+    <input type="date" name="t" id="t" onchange="test()">
     <script>
-        const test = async () => {
-            const req = await fetch('http://localhost:5000/auth/createUser', {method: 'post', credentials:"include"})
-            const res = await req.json()
+        console.log(document.getElementById('t').value);
 
-            console.log(res);
+        const test = () => {
+            console.log(document.getElementById('t').value);
         }
-
-        test()
-    </script>
+     </script>
 </body>
 </html>
