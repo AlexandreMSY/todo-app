@@ -25,31 +25,40 @@ const getUuid = async () => {
 
 function App() {
   const [tasks, setTasks] = useState([])
-  const [cookieDetails, setCookieDetails] = useState({})
+  const [uuid, setUuid] = useState('')
   const [count, setCount] = useState(0)
   const cookieCreated = useRef(false)
+
+  const getTasks = async () => {
+    const uuid = String(await getUuid())
+    const tasksFound = await TasksCrud.getTasks(uuid)
+
+    setTasks(prevState => prevState = tasksFound)
+    setCount(prevState => prevState = tasksFound.length)
+  }
   
   useEffect(() => {
-    const setCookie = async () => {
-      const uuid = await getUuid()
-      
-      setCookieDetails(prevState => prevState = uuid)
-    }
-
-    const getTasks = async () => {
-      const uuid = await getUuid()
-      const tasksFound = await TasksCrud.getTasks(uuid)
-
-      setTasks(prevState => prevState = tasksFound)
-      setCount(prevState => prevState = tasksFound.length)
-    }
-
     if(cookieCreated.current) return
     cookieCreated.current = true
-    setCookie()
+
+    const setCookieUuid = async () => {
+      const uuid = String(await getUuid())
+      setUuid(prevState => prevState = uuid)
+    }
+
+    setCookieUuid()
     getTasks()
   }, [])
 
+  const addTask = () => {
+    TasksCrud.createTask(uuid, 'PLACEHOLDER', '2000-04-23')
+    getTasks()
+  }
+
+  const deleteTask = (taskId) => {
+    TasksCrud.deleteTask(uuid, taskId)
+    getTasks()
+  }
 
   return(
     <>
@@ -60,7 +69,11 @@ function App() {
               <button className='btn btn-primary' onClick={() => {addTask()}}>Add Task</button>
             </div>
             <div className='d-flex flex-column gap-1'>
-              {Number(tasks.length) > 0 ? tasks.map((item) => <Task key={item.task_id} taskName={item.task_name} date={dateConverter(item.date_created)}/>) : <h5>No</h5>}
+              {Number(tasks.length) > 0 ? tasks.map((item) => <Task 
+              key={item.task_id} 
+              taskName={item.task_name} 
+              date={dateConverter(item.date_created)}
+              deleteBtnAction={() => deleteTask(item.task_id)}/>) : <h3 className='text-center'>No Todos</h3>}
             </div>
         </div>
       </div>

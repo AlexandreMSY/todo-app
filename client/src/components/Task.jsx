@@ -14,8 +14,8 @@ export default function Task(props){
                 </div>
                 <div className="col-md">
                     <div className='d-flex flex-row gap-1 justify-content-center'>
-                        <button className='btn btn-primary' onClick={props.onclick}>Edit</button>
-                        <button className='btn btn-danger'>Delete</button>
+                        <button className='btn btn-primary' onClick={props.editBtnAction}>Edit</button>
+                        <button className='btn btn-danger' onClick={props.deleteBtnAction}>Delete</button>
                     </div>
                 </div>
             </div>

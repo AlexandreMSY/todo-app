@@ -25,7 +25,7 @@ class TasksCrud{
         return await tasksFound.rows
     }
 
-    static async createTask(uuid,taskName, dateCreated){
+    static async createTask(uuid, taskName, dateCreated){
         const taskBody = {
             taskName: taskName,
             dateCreated: dateCreated,
@@ -43,6 +43,26 @@ class TasksCrud{
 
         return await request
     }
+
+    static async deleteTask(uuid, taskId){
+        const deleteTaskBody = {
+            uuid: uuid,
+            taskid: taskId
+        }
+
+        const request = this.#fetcher('http://localhost:5000/task/deleteTask', {
+            method: "delete",
+            credentials: "include",
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(deleteTaskBody)
+        })
+
+        return await request
+    }
+
+
 }
 
 export default TasksCrud
