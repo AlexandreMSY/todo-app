@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
+import ReactDOM from 'react-dom'
 import Task from './components/Task';
 import TasksCrud from './modules/TasksCrud';
+import Test from './components/Test';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css'
 
@@ -24,9 +26,11 @@ const getUuid = async () => {
 }
 
 function App() {
+  const taskName = useRef()
   const [tasks, setTasks] = useState([])
   const [uuid, setUuid] = useState('')
   const [count, setCount] = useState(0)
+  const [openCreatePopUp, setOpenCreatePopUp] = useState()
   const cookieCreated = useRef(false)
 
   const getTasks = async () => {
@@ -36,7 +40,7 @@ function App() {
     setTasks(prevState => prevState = tasksFound)
     setCount(prevState => prevState = tasksFound.length)
   }
-  
+
   useEffect(() => {
     if(cookieCreated.current) return
     cookieCreated.current = true
@@ -51,8 +55,10 @@ function App() {
   }, [])
 
   const addTask = () => {
-    TasksCrud.createTask(uuid, 'PLACEHOLDER', '2000-04-23')
+    const name = taskName.current.value
+    TasksCrud.createTask(uuid, name, '2000-04-23')
     getTasks()
+    setOpenCreatePopUp(prevState => prevState = !prevState)
   }
 
   const deleteTask = (taskId) => {
@@ -63,11 +69,19 @@ function App() {
   return(
     <>
       <div className='d-flex flex-row justify-content-center'>
-        <div className='border border-1 p-2 container-sm'>
+        <div className='position-relative border border-1 p-2 container-sm'>
             <div className='d-flex justify-content-between m-2'>
               <h3>Todos ({count})</h3>
-              <button className='btn btn-primary' onClick={() => {addTask()}}>Add Task</button>
-            </div>
+              <button className='btn btn-primary' onClick={() => {setOpenCreatePopUp(prevState => prevState = !prevState)}}>Add Task</button>
+            </div> 
+
+            {openCreatePopUp && <div className='d-flex justify-content-center align-items-start'>
+            <Test 
+            submitAction={() => {addTask()}} 
+            cancelAction={() => {setOpenCreatePopUp(prevState => prevState = !prevState)}} 
+            taskNameRef={taskName}/>
+            </div>}
+
             <div className='d-flex flex-column gap-1'>
               {Number(tasks.length) > 0 ? tasks.map((item) => <Task 
               key={item.task_id} 

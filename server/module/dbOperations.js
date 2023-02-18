@@ -36,6 +36,7 @@ class DatabaseOperations{
             const client = await this.#pool.connect()
             await client.query(text)
             client.release()
+            console.log(text)
         }catch(err){
             throw err
         }
