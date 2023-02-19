@@ -24,9 +24,9 @@ const createUsers = (req, res) => {
         res.cookie('user', uuid, cookieOptions)
         database.insertIntoUsers(hostName, uuid)
 
-        res.status(200).json({hostname: hostName, uuid: uuid})
+        res.status(200).json({cookieCreated: true, hostname: hostName, uuid: uuid})
     }else{
-        res.status(200).json({hostname: hostName, uuid: cookie})
+        res.status(200).json({cookieCreated: false, hostname: hostName, uuid: cookie})
     }
 }
 

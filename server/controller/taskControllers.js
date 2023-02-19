@@ -1,16 +1,33 @@
 const dbOperations = require('../module/dbOperations')
+const { Pool } = require('pg')
+require('dotenv').config()
 
-var database = new dbOperations()
+const pool = new Pool({
+    user: process.env.DB_USER,
+    port: process.env.DB_PORT,
+    host: process.env.DB_HOST,
+    database: process.env.DB_DATABASE,
+    password: process.env.DB_PASSWORD
+})
+
+const query = async (text) => {
+    const client = await pool.connect()
+    const query = await client.query(text)
+    client.release()
+
+    return query
+}
 
 const createTask = async (req, res) => {
     const { taskName, dateCreated, uuid } = req.body
+    const text = `INSERT INTO task (task_name, date_created, uuid) VALUES ('${taskName}', '${dateCreated}', '${uuid}')`
+
     try{
         if(!taskName && !dateCreated && !uuid){
             return res.status(500).json({success: false, msg: 'body cannot be null'})
         }else{
-            let query = await database.insertIntoTask(taskName, dateCreated, uuid)
-            let jsonMessage = query === undefined ? {success: true, msg: 'task created', task: {taskname: taskName, datecreated: dateCreated, uuid: uuid}} : {success: false, msg: query}
-
+            query(text)
+            let jsonMessage = {success: true, msg: 'task created', task: {taskname: taskName, datecreated: dateCreated, uuid: uuid}}
             res.status(200).json(jsonMessage)
         }
     }catch(err){
@@ -20,12 +37,25 @@ const createTask = async (req, res) => {
 
 const allTasks = async (req, res) => {
     const { uuid, taskname, afterdate, beforedate } = req.query
+    let text = `SELECT task_name, date_created, task_id FROM task WHERE uuid = '${uuid}'`
+    let queryText = "";
+        
+    if(taskname && (!afterdate || !beforedate)){
+        queryText = ` AND task_name ILIKE '%${taskname}%'`
+        text = text + queryText
+    }else if (taskname && (afterdate || beforedate)){
+        queryText = ` AND task_name ILIKE '%${taskname}%' AND ${afterdate ? `date_created > '${afterdate}'` : `date_created < '${beforedate}'`}`
+        text = text + queryText
+    }else if (!taskname && (afterdate || beforedate)){
+        queryText = ` AND ${afterdate ? `date_created > '${afterdate}'` : `date_created < '${beforedate}'`}`
+        text = text + queryText
+    }
 
     try{
         if(!uuid){
             res.status(404).json({msg: 'no uuid provided'})
         }
-        const rows = await database.getAllTasks(uuid, taskname, afterdate, beforedate)
+        const {rows} = await query(text)
         res.status(200).json({uuid: uuid, rows: rows})
     }catch(err){
         console.log(err)
@@ -38,8 +68,10 @@ const updateTask = async (req, res) => {
         let status = ''
 
         if(taskid && newTaskName && uuid){
-            status = await database.updateTask(uuid, taskid, newTaskName)
-            status ? res.status(200).json({success: status, newTask: {taskid, newTaskName, uuid}}) : res.status(404).json({success: status, masg: "task not found"})
+            status = await query(`UPDATE task SET task_name = '${newTaskName}' WHERE task_id = ${taskid} AND uuid = '${uuid}'`)
+            console.log(status);
+
+            //status ? res.status(200).json({success: status, newTask: {taskid, newTaskName, uuid}}) : res.status(404).json({success: status, masg: "task not found"})
         }else{
             res.json({success: false, msg: 'missing info'})
         }
@@ -51,13 +83,14 @@ const updateTask = async (req, res) => {
 const deleteTask = async (req, res) => {
     try{
         const { uuid, taskid } = req.body
-        const taskDeleted = await database.deleteTask(uuid, taskid)
+        const text = `DELETE FROM task WHERE task_id = ${taskid} AND uuid = '${uuid}'`
+        const status = await query(text)
 
-        if(taskDeleted){
-            return res.status(200).json({success: taskDeleted})
+        if(status.rowCount === 0){
+            res.status(404).json({success: false, msg: "task not found"})
         }
 
-        res.status(404).json({success: taskDeleted, msg: "task not found"})
+        res.status(200).json({success: true, msg: "ok!"})
     }catch(err){
         return err
     }

@@ -1,6 +1,6 @@
 class TasksCrud{
 
-    static async #fetcher(url, options){
+    static async fetcher(url, options){
         const request = await fetch(url, options)
         const response = await request.json()
 
@@ -8,7 +8,6 @@ class TasksCrud{
     }
 
     static async getTasks(uuid, taskName, afterDate, beforeDate){
-        //console.log('uuid ' + uuid)
         let url = `http://localhost:5000/task/alltasks?uuid=${uuid}`
         let taskNameNoSpaces = String(taskName).replace(" ", "+")
 
@@ -20,9 +19,9 @@ class TasksCrud{
             url = url + `&taskname=${taskNameNoSpaces}`
         }
 
-        const tasksFound = await this.#fetcher(url)
+        const tasksFound = await this.fetcher(url)
 
-        return await tasksFound.rows
+        return tasksFound.rows
     }
 
     static async createTask(uuid, taskName, dateCreated){
@@ -32,7 +31,7 @@ class TasksCrud{
             uuid: uuid
         }
 
-        const request = this.#fetcher('http://localhost:5000/task/createTask', {
+        const request = this.fetcher('http://localhost:5000/task/createTask', {
             method: "post",
             credentials: "include",
             headers: {
@@ -41,25 +40,25 @@ class TasksCrud{
             body: JSON.stringify(taskBody)
         })
 
-        return await request
+        return request
     }
 
     static async deleteTask(uuid, taskId){
-        const deleteTaskBody = {
+        const body = {
             uuid: uuid,
             taskid: taskId
         }
 
-        const request = this.#fetcher('http://localhost:5000/task/deleteTask', {
+        const request = TasksCrud.fetcher('http://localhost:5000/task/deleteTask', {
             method: "delete",
             credentials: "include",
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(deleteTaskBody)
+            body: JSON.stringify(body)
         })
 
-        return await request
+        return request
     }
 
 

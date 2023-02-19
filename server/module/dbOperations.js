@@ -36,7 +36,6 @@ class DatabaseOperations{
             const client = await this.#pool.connect()
             await client.query(text)
             client.release()
-            console.log(text)
         }catch(err){
             throw err
         }
@@ -63,7 +62,7 @@ class DatabaseOperations{
             const client = await this.#pool.connect()
             const {rows} = await client.query(text)
             client.release()
-
+            console.log(this.#pool.totalCount)
             return rows
         }catch(err){
             throw err
@@ -88,25 +87,20 @@ class DatabaseOperations{
 
     async updateTask(uuid, taskId, newTaskName){
         const text = `UPDATE task SET task_name = '${newTaskName}' WHERE task_id = ${taskId} AND uuid = '${uuid}'`
-
+        
         try{
-            const taskExists = await this.#taskExists(uuid, taskId)
-            
-            if(taskExists){
-                const client = await this.#pool.connect()
-                await client.query(text)
-                client.release()
+            const client = await this.#pool.connect()
+            await client.query(text)
+            client.release()
 
-                return true
-            }else{
-                return false
-            }
+            return true
+
         }catch (err){
             throw err
         }
     }
 
-    async deleteTask(uuid, taskId){
+    /*async deleteTask(uuid, taskId){
         const text = `DELETE FROM task WHERE task_id = ${taskId} AND uuid = '${uuid}'`
 
         try{
@@ -116,7 +110,6 @@ class DatabaseOperations{
                 const client = await this.#pool.connect()
                 await client.query(text)
                 client.release()
-
                 return true
             }else{
                 return false
@@ -124,7 +117,7 @@ class DatabaseOperations{
         }catch(err){
             throw err
         }
-    }
+    }*/
 
 }
 
