@@ -1,16 +1,29 @@
 import React from 'react'
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 export default function AddTaskPopUp(props){
     return(
         <>
-            <div className='d-flex flex-column gap-2 justify-content-center align-items-center container p-3 position-absolute border' style={{color:'black', backdropFilter: 'blur(6px)', maxWidth: '90%', height: '40vh'}}>
-                <div className='d-flex gap-1'>
-                    <label htmlFor="taskName">Task Name</label>
-                    <input type="text" name="taskName" id="taskName" ref={props.taskNameRef}/>
-                </div>
-                <div className='d-flex gap-1'>
-                    <button className='btn btn-danger' onClick={props.cancelAction}>Cancel</button>
-                    <button className='btn btn-warning' onClick={props.submitAction}>Submit</button>
+            <div className='column-gap-3 p-4 border shadow container' style={{backgroundColor: 'white'}}>
+                <div className='column'>
+                    <div className="col">
+                        <div className='d-flex flex-column'>
+                            <label htmlFor="taskName"><h5>Task Name</h5></label>
+                            <input type="text" name="taskName" id="taskName" onChange={props.handleChange}/>
+                        </div>
+                    </div>
+                    <div className="col mt-2">
+                        <div className='d-flex flex-column'>
+                            <label htmlFor="date"><h5>Date</h5></label>
+                            <input type="date" name="expireDate" id="expireDate" className='text-center' onChange={props.handleChange}/>
+                        </div>
+                    </div>
+                    <div className="col mt-2">
+                        <div className='d-flex justify-content-center gap-2 flex-row mt-2'>
+                            <button className='btn btn-danger' onClick={props.cancelOnClick}>Cancel</button>
+                            <button className='btn btn-primary' onClick={props.submitOnClick}>Submit</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </>

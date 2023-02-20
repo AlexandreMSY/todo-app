@@ -1,4 +1,4 @@
-const dbOperations = require('../module/dbOperations')
+//const dbOperations = require('../module/dbOperations')
 const { Pool } = require('pg')
 require('dotenv').config()
 

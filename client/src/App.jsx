@@ -35,30 +35,38 @@ const fetchTasks = async () => {
 }
 
 function App() {
-  const taskName = useRef()
-  const [tasks, setTasks] = useState([])
+  const [tasks, setTasks] = useState({})
+  const [inputs, setInputs] = useState({})
   const [count, setCount] = useState(0)
   const [openCreatePopUp, setOpenCreatePopUp] = useState()
   const cookieCreated = useRef(false)
 
   useEffect(() => {
     const getTasks = async () => {
-      const tasks = await fetchTasks()
-      setCount(prevState => prevState = tasks.length)
-      setTasks(prevState => prevState = tasks)
+      const tasksFound = await fetchTasks()
+      setCount(tasksFound.length)
+      setTasks(tasksFound)
     }
 
-    if(cookieCreated.current) return
-    cookieCreated.current = true
     getTasks()
+    console.log(tasks);
   }, [])
 
+  //handle input changes
+  const handleChange = (event) => {
+    const name = event.target.name
+    const value = event.target.value
+
+    setInputs(values => ({...values, [name]: value}))
+    console.log(inputs)
+  }
+
+  //add task
   const addTask = async () => {
-    const name = taskName.current.value
     const currentDate = new Date().toISOString().slice(0, 10)
 
     const body = {
-      taskName: name,
+      taskName: inputs.taskName,
       dateCreated: currentDate,
       uuid: await getUuid()
     }
@@ -75,16 +83,18 @@ function App() {
     const tasksFound = await fetchTasks()
 
     setCount(prevState => prevState = tasksFound.length)
-    setTasks(prevState => prevState = [...tasksFound])
+    setTasks(prevState => ({...prevState}, tasksFound))
+
     setOpenCreatePopUp(prevState => prevState = !prevState)
   }
 
+  //delete task
   const deleteTask = async (taskId) => {
     const uuid = await getUuid()
     const body = {
       uuid: uuid,
       taskid: taskId
-    }
+  }
 
     TasksCrud.fetcher('http://localhost:5000/task/deletetask', {
       method: "delete",
@@ -97,35 +107,38 @@ function App() {
 
     const newTasks = await fetchTasks()
 
-    setCount(prevState => prevState = newTasks.length)
-    setTasks(prevState => prevState = [...newTasks])
+    setCount(prevState => prevState = prevState - 1)
+    setTasks(prevState => prevState = newTasks)
   }
 
   return(
     <>
-      <div className='d-flex flex-row justify-content-center'>
-        <div className='position-relative border border-1 p-2 container-sm'>
-            <div className='d-flex justify-content-between m-2'>
+        <div className='d-flex flex-column justify-content-center shadow border border-1 position-relative container-md p-2'>
+            <div className='d-flex flex-row justify-content-between m-2'>
               <h3>Todos ({count})</h3>
               <button className='btn btn-primary' onClick={() => {setOpenCreatePopUp(prevState => prevState = !prevState)}}>Add Task</button>
             </div> 
 
-            {openCreatePopUp && <div className='d-flex justify-content-center'>
-              <AddTaskPopUp 
-              submitAction={() => {addTask()}} 
-              cancelAction={() => {setOpenCreatePopUp(prevState => prevState = !prevState)}} 
-              taskNameRef={taskName}/>
-            </div>}
+            {openCreatePopUp &&
+              <div className='d-flex justify-content-center'>
+                <div className='border position-absolute' style={{width: '80%'}}>
+                  <AddTaskPopUp 
+                  submitOnClick={() => {addTask()}} 
+                  cancelOnClick={() => {setOpenCreatePopUp(prevState => prevState = !prevState)}}
+                  handleChange={handleChange} 
+                  />
+                </div>
+              </div>
+            }
 
-            <div className='d-flex flex-column gap-1'>
-              {Number(tasks.length) > 0 ? tasks.map((item) => <Task 
+            <div className='d-flex flex-column gap-1 m-2'>
+              {tasks.length ? tasks.map((item) => <Task 
               key={item.task_id} 
               taskName={item.task_name} 
               date={dateConverter(item.date_created)}
               deleteBtnAction={() => deleteTask(item.task_id)}/>) : <h3 className='text-center'>No Todos</h3>}
             </div>
-        </div>
-      </div>
+          </div>
     </>
   )
 }
