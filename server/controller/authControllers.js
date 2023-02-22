@@ -1,6 +1,6 @@
 const uuidGen = require('uuid')
 const os = require('os')
-const DataBaseOperations = require('../module/dbOperations')
+const db = require('../module/dbOperations')
 const { log } = require('console')
 
 const cookieOptions = {
@@ -11,18 +11,15 @@ const cookieOptions = {
     //expires: new Date('2023-04-21').getMilliseconds()
 }
 
-const createUsers = (req, res) => {
+const createUsers = async (req, res) => {
     const cookie = req.cookies.user
     const hostName = os.hostname()
 
-    log(cookie)
-
     if(!cookie){
         const uuid = uuidGen.v4()
-        let database = new DataBaseOperations(uuid)
 
         res.cookie('user', uuid, cookieOptions)
-        database.insertIntoUsers(hostName, uuid)
+        await db.query(`INSERT INTO user_details (hostname, uuid) VALUES ('${hostName}', '${uuid}')`)
 
         res.status(200).json({cookieCreated: true, hostname: hostName, uuid: uuid})
     }else{

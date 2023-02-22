@@ -1,12 +1,17 @@
 import { useState, useEffect, useRef } from 'react'
 import ReactDOM from 'react-dom'
 import Task from './components/Task';
-import TasksCrud from './modules/TasksCrud';
-import AddTaskPopUp from './components/Test';
+import AddTask from './components/AddTask';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css'
+import EditTask from './components/EditTask';
 
-//var tasksCrud = new TasksCrud()
+const fetchApi = async (url, params) => {
+  const req = await fetch(url, params)
+  const res = await req.json()
+
+  return res
+}
 
 const dateConverter = (date, isoDate) => {
   const originalDate = new Date(date)
@@ -19,37 +24,47 @@ const dateConverter = (date, isoDate) => {
 }
 
 const getUuid = async () => {
-  const req = await fetch('http://localhost:5000/auth/createUser', {credentials: 'include', method:'post'})
-  const res = await req.json()
-  const uuid = await res.uuid
+  const res = await fetchApi('http://localhost:5000/auth/createUser', {credentials: 'include', method:'post'})
+  const uuid = res.uuid
 
   return uuid
 }
 
-const fetchTasks = async () => {
-  const uuid = await getUuid()
-  const req = await fetch(`http://localhost:5000/task/alltasks?uuid=${uuid}`)
-  const res = await req.json()
-
-  return res.rows
-}
-
 function App() {
   const [tasks, setTasks] = useState({})
+  const [taskInfo, setTaskInfo] = useState({})
+  const [uuid, setUuid] = useState()
   const [inputs, setInputs] = useState({})
-  const [count, setCount] = useState(0)
-  const [openCreatePopUp, setOpenCreatePopUp] = useState()
+  const [addTaskPopUp, setAddTaskPopUp] = useState(false)
+  const [editTaskPopUp, setEditTaskPopUp] = useState(false)
+  const newTaskNameRef = useRef('')
   const cookieCreated = useRef(false)
 
-  useEffect(() => {
-    const getTasks = async () => {
-      const tasksFound = await fetchTasks()
-      setCount(tasksFound.length)
-      setTasks(tasksFound)
+  const fetchTasks = async () => {
+    const prevLength = tasks.tasksCount;
+    const uuid = await getUuid() 
+    let res = await fetchApi(`http://localhost:5000/task/alltasks?uuid=${uuid}`)
+
+    const currentLength = res.rows.length
+
+    if(prevLength == currentLength){
+      res = await fetchApi(`http://localhost:5000/task/alltasks?uuid=${uuid}`)
     }
 
-    getTasks()
-    console.log(tasks);
+    /*the line above is a partial solution for the tasks not updating bug 
+    still investigating the bug
+    
+    in case the current task length fetched is the same as the previous length, it just fetches the api again
+    */
+    
+    setTasks(prevState => ({tasks: prevState.tasks = res.rows, tasksCount: prevState.tasksCount = res.rows.length}))
+    setUuid(prevState => prevState = uuid)
+  }
+
+  useEffect(() => {
+    if(cookieCreated.current) return
+    cookieCreated.current = true
+    fetchTasks()
   }, [])
 
   //handle input changes
@@ -58,7 +73,6 @@ function App() {
     const value = event.target.value
 
     setInputs(values => ({...values, [name]: value}))
-    console.log(inputs)
   }
 
   //add task
@@ -68,75 +82,105 @@ function App() {
     const body = {
       taskName: inputs.taskName,
       dateCreated: currentDate,
-      uuid: await getUuid()
+      uuid: uuid
     }
 
-    TasksCrud.fetcher('http://localhost:5000/task/createTask', {
+    fetchApi('http://localhost:5000/task/createTask', {
       method: 'post',
       credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(body)
     })
 
-    const tasksFound = await fetchTasks()
-
-    setCount(prevState => prevState = tasksFound.length)
-    setTasks(prevState => ({...prevState}, tasksFound))
-
-    setOpenCreatePopUp(prevState => prevState = !prevState)
+    await fetchTasks()
+    setAddTaskPopUp(prevState => prevState = !prevState)
   }
 
   //delete task
   const deleteTask = async (taskId) => {
-    const uuid = await getUuid()
     const body = {
       uuid: uuid,
       taskid: taskId
   }
 
-    TasksCrud.fetcher('http://localhost:5000/task/deletetask', {
+    fetchApi('http://localhost:5000/task/deletetask', {
       method: "delete",
       credentials: "include",
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(body)
     })
 
-    const newTasks = await fetchTasks()
-
-    setCount(prevState => prevState = prevState - 1)
-    setTasks(prevState => prevState = newTasks)
+    await fetchTasks()
   }
+
+  //edit task
+  const editTask = async () => {
+    setInputs(prevState => ({newTaskName: prevState.newTaskName = newTaskNameRef.current}))
+
+    const body = {
+      taskId: taskInfo.taskId,
+      newTaskName: inputs.newTaskName,
+      uuid: uuid
+    }
+
+    fetchApi('http://localhost:5000/task/updateTask', {
+      method: "put",
+      credentials: "include",
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(body)
+    })
+
+    await fetchTasks()
+    setEditTaskPopUp(prevState => prevState = !prevState)
+  }
+
 
   return(
     <>
         <div className='d-flex flex-column justify-content-center shadow border border-1 position-relative container-md p-2'>
             <div className='d-flex flex-row justify-content-between m-2'>
-              <h3>Todos ({count})</h3>
-              <button className='btn btn-primary' onClick={() => {setOpenCreatePopUp(prevState => prevState = !prevState)}}>Add Task</button>
+              <h3>Todos ({tasks.tasksCount})</h3>
+              <button className='btn btn-primary' onClick={() => {setAddTaskPopUp(prevState => prevState = !prevState)}}>Add Task</button>
             </div> 
 
-            {openCreatePopUp &&
+            {addTaskPopUp &&
               <div className='d-flex justify-content-center'>
                 <div className='border position-absolute' style={{width: '80%'}}>
-                  <AddTaskPopUp 
-                  submitOnClick={() => {addTask()}} 
-                  cancelOnClick={() => {setOpenCreatePopUp(prevState => prevState = !prevState)}}
-                  handleChange={handleChange} 
+                  <AddTask
+                    submitOnClick = {() => {addTask()}} 
+                    cancelOnClick = {() => {setAddTaskPopUp(prevState => prevState = !prevState)}}
+                    handleChange = {handleChange} 
                   />
                 </div>
               </div>
             }
 
+            {editTaskPopUp &&
+              <div className='d-flex justify-content-center'>
+                <div className='border border-warning position-absolute'>
+                  <EditTask
+                    newTaskNameValue = {newTaskNameRef.current}
+                    cancelOnClick = {() => {setEditTaskPopUp(prevState => prevState = !prevState)}}
+                    editOnClick = {() => editTask()}
+                    handleChange = {handleChange}
+                  />
+                </div>
+              </div> 
+            }
+
             <div className='d-flex flex-column gap-1 m-2'>
-              {tasks.length ? tasks.map((item) => <Task 
-              key={item.task_id} 
-              taskName={item.task_name} 
-              date={dateConverter(item.date_created)}
-              deleteBtnAction={() => deleteTask(item.task_id)}/>) : <h3 className='text-center'>No Todos</h3>}
+              {tasks.tasksCount ? tasks.tasks.map((item) => 
+              <Task 
+                key={item.task_id} 
+                taskName={item.task_name} 
+                date={dateConverter(item.date_created)}
+                deleteBtnAction={() => deleteTask(item.task_id)}
+                editBtnAction={() => {
+                  newTaskNameRef.current = item.task_name
+                  setTaskInfo(prevState => ({taskName: prevState.taskName = item.task_name, taskId: prevState.taskName = item.task_id}))
+                  setEditTaskPopUp(prevState => prevState = !prevState)
+                }}
+                />) : <h3 className='text-center border p-4'>No Todos</h3>}
             </div>
           </div>
     </>

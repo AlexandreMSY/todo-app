@@ -1,22 +1,6 @@
-//const dbOperations = require('../module/dbOperations')
+const db = require('../module/dbOperations')
 const { Pool } = require('pg')
 require('dotenv').config()
-
-const pool = new Pool({
-    user: process.env.DB_USER,
-    port: process.env.DB_PORT,
-    host: process.env.DB_HOST,
-    database: process.env.DB_DATABASE,
-    password: process.env.DB_PASSWORD
-})
-
-const query = async (text) => {
-    const client = await pool.connect()
-    const query = await client.query(text)
-    client.release()
-
-    return query
-}
 
 const createTask = async (req, res) => {
     const { taskName, dateCreated, uuid } = req.body
@@ -26,7 +10,7 @@ const createTask = async (req, res) => {
         if(!taskName && !dateCreated && !uuid){
             return res.status(500).json({success: false, msg: 'body cannot be null'})
         }else{
-            query(text)
+            db.query(text)
             let jsonMessage = {success: true, msg: 'task created', task: {taskname: taskName, datecreated: dateCreated, uuid: uuid}}
             res.status(200).json(jsonMessage)
         }
@@ -55,7 +39,7 @@ const allTasks = async (req, res) => {
         if(!uuid){
             res.status(404).json({msg: 'no uuid provided'})
         }
-        const {rows} = await query(text)
+        const {rows} = await db.query(text)
         res.status(200).json({uuid: uuid, rows: rows})
     }catch(err){
         console.log(err)
@@ -64,14 +48,13 @@ const allTasks = async (req, res) => {
 
 const updateTask = async (req, res) => {
     try{
-        const { taskid, newTaskName, uuid } = req.body
+        const { taskId, newTaskName, uuid } = req.body
         let status = ''
 
-        if(taskid && newTaskName && uuid){
-            status = await query(`UPDATE task SET task_name = '${newTaskName}' WHERE task_id = ${taskid} AND uuid = '${uuid}'`)
-            console.log(status);
+        if(taskId && newTaskName && uuid){
+            status = await db.query(`UPDATE task SET task_name = '${newTaskName}' WHERE task_id = ${taskId} AND uuid = '${uuid}'`)
 
-            //status ? res.status(200).json({success: status, newTask: {taskid, newTaskName, uuid}}) : res.status(404).json({success: status, masg: "task not found"})
+            res.status(200).json({success: status, newTask: {taskid, newTaskName, uuid}})
         }else{
             res.json({success: false, msg: 'missing info'})
         }
@@ -84,7 +67,7 @@ const deleteTask = async (req, res) => {
     try{
         const { uuid, taskid } = req.body
         const text = `DELETE FROM task WHERE task_id = ${taskid} AND uuid = '${uuid}'`
-        const status = await query(text)
+        const status = await db.query(text)
 
         if(status.rowCount === 0){
             res.status(404).json({success: false, msg: "task not found"})

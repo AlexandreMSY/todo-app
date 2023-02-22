@@ -1,7 +1,7 @@
 import React from 'react'
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-export default function AddTaskPopUp(props){
+export default function AddTask(props){
     return(
         <>
             <div className='column-gap-3 p-4 border shadow container' style={{backgroundColor: 'white'}}>

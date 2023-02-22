@@ -4,7 +4,7 @@ const { createTask, allTasks, updateTask, deleteTask } = require('../controller/
 
 router.get('/alltasks/:taskName?/:afterdate?/:beforedate?', allTasks)
 router.post('/createTask', createTask)
-router.patch('/updateTask', updateTask)
+router.put('/updateTask', updateTask)
 router.delete('/deleteTask', deleteTask)
 
 module.exports = router
