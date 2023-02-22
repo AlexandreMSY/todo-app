@@ -3,8 +3,8 @@ const { Pool } = require('pg')
 require('dotenv').config()
 
 const createTask = async (req, res) => {
-    const { taskName, dateCreated, uuid } = req.body
-    const text = `INSERT INTO task (task_name, date_created, uuid) VALUES ('${taskName}', '${dateCreated}', '${uuid}')`
+    const { taskName, dateCreated, dueDate, uuid } = req.body
+    const text = `INSERT INTO task (task_name, date_created, due_date, uuid) VALUES ('${taskName}', '${dateCreated}', '${dueDate}', '${uuid}')`
 
     try{
         if(!taskName && !dateCreated && !uuid){
@@ -21,7 +21,7 @@ const createTask = async (req, res) => {
 
 const allTasks = async (req, res) => {
     const { uuid, taskname, afterdate, beforedate } = req.query
-    let text = `SELECT task_name, date_created, task_id FROM task WHERE uuid = '${uuid}'`
+    let text = `SELECT task_name, date_created, due_date, task_id FROM task WHERE uuid = '${uuid}'`
     let queryText = "";
         
     if(taskname && (!afterdate || !beforedate)){
@@ -48,13 +48,13 @@ const allTasks = async (req, res) => {
 
 const updateTask = async (req, res) => {
     try{
-        const { taskId, newTaskName, uuid } = req.body
+        const { taskId, newTaskName, newDueDate, uuid } = req.body
         let status = ''
 
         if(taskId && newTaskName && uuid){
-            status = await db.query(`UPDATE task SET task_name = '${newTaskName}' WHERE task_id = ${taskId} AND uuid = '${uuid}'`)
+            status = await db.query(`UPDATE task SET task_name = '${newTaskName}', due_date = '${newDueDate}' WHERE task_id = ${taskId} AND uuid = '${uuid}'`)
 
-            res.status(200).json({success: status, newTask: {taskid, newTaskName, uuid}})
+            res.status(200).json({success: status, newTask: {taskid, newTaskName, newDueDate, uuid}})
         }else{
             res.json({success: false, msg: 'missing info'})
         }

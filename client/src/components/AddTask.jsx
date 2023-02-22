@@ -2,6 +2,7 @@ import React from 'react'
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 export default function AddTask(props){
+    const date = new Date().toISOString().slice(0, 10)
     return(
         <>
             <div className='column-gap-3 p-4 border shadow container' style={{backgroundColor: 'white'}}>
@@ -14,8 +15,8 @@ export default function AddTask(props){
                     </div>
                     <div className="col mt-2">
                         <div className='d-flex flex-column'>
-                            <label htmlFor="date"><h5>Date</h5></label>
-                            <input type="date" name="expireDate" id="expireDate" className='text-center' onChange={props.handleChange}/>
+                            <label htmlFor="date"><h5>Due Date</h5></label>
+                            <input type="date" name="expireDate" id="expireDate" min={date} defaultValue={date} className='text-center' onChange={props.handleChange}/>
                         </div>
                     </div>
                     <div className="col mt-2">

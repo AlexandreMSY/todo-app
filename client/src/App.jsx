@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react'
-import ReactDOM from 'react-dom'
 import Task from './components/Task';
 import AddTask from './components/AddTask';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -73,6 +72,7 @@ function App() {
     const value = event.target.value
 
     setInputs(values => ({...values, [name]: value}))
+    console.log(inputs);
   }
 
   //add task
@@ -82,6 +82,7 @@ function App() {
     const body = {
       taskName: inputs.taskName,
       dateCreated: currentDate,
+      dueDate: inputs.expireDate,
       uuid: uuid
     }
 
@@ -120,6 +121,7 @@ function App() {
     const body = {
       taskId: taskInfo.taskId,
       newTaskName: inputs.newTaskName,
+      newDueDate: inputs.newExpireDate,
       uuid: uuid
     }
 
@@ -173,14 +175,15 @@ function App() {
               <Task 
                 key={item.task_id} 
                 taskName={item.task_name} 
-                date={dateConverter(item.date_created)}
+                //date={dateConverter(item.date_created)}
+                dueDate={dateConverter(item.due_date)}
                 deleteBtnAction={() => deleteTask(item.task_id)}
                 editBtnAction={() => {
                   newTaskNameRef.current = item.task_name
                   setTaskInfo(prevState => ({taskName: prevState.taskName = item.task_name, taskId: prevState.taskName = item.task_id}))
                   setEditTaskPopUp(prevState => prevState = !prevState)
                 }}
-                />) : <h3 className='text-center border p-4'>No Todos</h3>}
+              />) : <h3 className='text-center border p-4'>No Todos</h3>}
             </div>
           </div>
     </>
