@@ -10,7 +10,7 @@ export default function Task(props){
                     <h5 style={{marginBottom: "auto"}}>{props.taskName}</h5>
                 </div>
                 <div className="col-md">
-                    <p style={{marginBottom: "auto"}}>{props.date}</p>
+                    <p style={{marginBottom: "auto"}}><strong>Due Date: </strong> {props.dueDate}</p>
                 </div>
                 <div className="col-md">
                     <div className='d-flex flex-row gap-1 justify-content-center'>

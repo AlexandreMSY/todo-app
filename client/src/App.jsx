@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react'
-import ReactDOM from 'react-dom'
 import Task from './components/Task';
 import AddTask from './components/AddTask';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -13,14 +12,23 @@ const fetchApi = async (url, params) => {
   return res
 }
 
-const dateConverter = (date, isoDate) => {
+const dateConverter = (date) => {
   const originalDate = new Date(date)
   
   const year = originalDate.getFullYear()
   const month = originalDate.getMonth() + 1
   const day = originalDate.getDate()
 
-  return !isoDate ? `${day.toString().length > 1 ? day : `0${day}`}-0${month}-${year}` : `${year}-0${month}-${day.toString().length > 1 ? day : `0${day}`}`
+  return `${day.toString().length > 1 ? day : `0${day}`}-${month.toString().length > 1 ? `${month}` : `0${month}`}-${year}`
+}
+
+const currentDate = () => {
+  const date = new Date()
+  const day = date.getDate()
+  const month = date.getMonth() + 1
+  const year = date.getFullYear()
+
+  return `${year}-${month.toString().length > 1 ? `${month}` : `0${month}`}-${day.toString().length > 1 ? `${day}` : `0${day}`}`
 }
 
 const getUuid = async () => {
@@ -73,15 +81,15 @@ function App() {
     const value = event.target.value
 
     setInputs(values => ({...values, [name]: value}))
+    console.log(inputs);
   }
 
   //add task
   const addTask = async () => {
-    const currentDate = new Date().toISOString().slice(0, 10)
-
     const body = {
       taskName: inputs.taskName,
-      dateCreated: currentDate,
+      dateCreated: currentDate(),
+      dueDate: !inputs.expireDate ? currentDate() : inputs.expireDate,
       uuid: uuid
     }
 
@@ -93,6 +101,7 @@ function App() {
     })
 
     await fetchTasks()
+    setInputs(prevState => ({expireDate: prevState.expireDate = undefined}))
     setAddTaskPopUp(prevState => prevState = !prevState)
   }
 
@@ -120,6 +129,7 @@ function App() {
     const body = {
       taskId: taskInfo.taskId,
       newTaskName: inputs.newTaskName,
+      newDueDate: !inputs.newExpireDate ? currentDate() : !inputs.newExpireDate,
       uuid: uuid
     }
 
@@ -131,6 +141,7 @@ function App() {
     })
 
     await fetchTasks()
+    setInputs(prevState => ({newExpireDate: prevState.newExpireDate = undefined}))
     setEditTaskPopUp(prevState => prevState = !prevState)
   }
 
@@ -173,14 +184,15 @@ function App() {
               <Task 
                 key={item.task_id} 
                 taskName={item.task_name} 
-                date={dateConverter(item.date_created)}
+                //date={dateConverter(item.date_created)}
+                dueDate={dateConverter(item.due_date)}
                 deleteBtnAction={() => deleteTask(item.task_id)}
                 editBtnAction={() => {
                   newTaskNameRef.current = item.task_name
                   setTaskInfo(prevState => ({taskName: prevState.taskName = item.task_name, taskId: prevState.taskName = item.task_id}))
                   setEditTaskPopUp(prevState => prevState = !prevState)
                 }}
-                />) : <h3 className='text-center border p-4'>No Todos</h3>}
+              />) : <h3 className='text-center border p-4'>No Todos</h3>}
             </div>
           </div>
     </>

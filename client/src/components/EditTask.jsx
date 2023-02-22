@@ -1,6 +1,8 @@
 import React from 'react'
 import 'bootstrap/dist/css/bootstrap.min.css';
 
+const currentDate = new Date().toISOString().slice(0, 10)
+
 export default function EditTask(props){
     return(
         <>
@@ -15,7 +17,7 @@ export default function EditTask(props){
                     <div className="col mt-2">
                         <div className='d-flex flex-column'>
                             <label htmlFor="date"><h5>New Date</h5></label>
-                            <input type="date" name="newExpireDate" id="newExpireDate" className='text-center' defaultValue={props.newDateValue} onChange={props.handleChange}/>
+                            <input type="date" name="newExpireDate" id="newExpireDate" className='text-center' min={props.minDate} defaultValue={props.newDateValue} onChange={props.handleChange}/>
                         </div>
                     </div>
                     <div className="col mt-2">
