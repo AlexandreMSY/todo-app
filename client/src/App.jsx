@@ -82,6 +82,7 @@ function App() {
 
     setInputs(values => ({...values, [name]: value}))
     console.log(inputs);
+    console.log(inputs);
   }
 
   //add task
