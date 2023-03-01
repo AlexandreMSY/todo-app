@@ -24,15 +24,6 @@ const dateConverter = (date) => {
   return `${day.toString().length > 1 ? day : `0${day}`}-${month.toString().length > 1 ? `${month}` : `0${month}`}-${year}`
 }
 
-const currentDate = () => {
-  const date = new Date()
-  const day = date.getDate()
-  const month = date.getMonth() + 1
-  const year = date.getFullYear()
-
-  return `${year}-${month.toString().length > 1 ? `${month}` : `0${month}`}-${day.toString().length > 1 ? `${day}` : `0${day}`}`
-}
-
 const getUuid = async () => {
   const res = await fetchApi('http://localhost:5000/auth/createUser', {credentials: 'include', method:'post'})
   const uuid = res.uuid
@@ -83,8 +74,6 @@ function App() {
     const value = event.target.value
 
     setInputs(values => ({...values, [name]: value}))
-    console.log(inputs);
-    console.log(inputs);
   }
 
   //add task
