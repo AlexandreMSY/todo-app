@@ -23,14 +23,16 @@ const allTasks = async (req, res) => {
     const { uuid, taskname, afterdate, beforedate } = req.query
     let text = `SELECT task_name, date_created, due_date, task_id FROM task WHERE uuid = '${uuid}'`
     let queryText = "";
+
+    console.log(req.query);
         
-    if(taskname && (!afterdate || !beforedate)){
+    if(taskname && (!afterdate && !beforedate)){
         queryText = ` AND task_name ILIKE '%${taskname}%'`
         text = text + queryText
     }else if (taskname && (afterdate || beforedate)){
         queryText = ` AND task_name ILIKE '%${taskname}%' AND ${afterdate ? `date_created > '${afterdate}'` : `date_created < '${beforedate}'`}`
         text = text + queryText
-    }else if (!taskname && (afterdate || beforedate)){
+    }else if (afterdate || beforedate){
         queryText = ` AND ${afterdate ? `date_created > '${afterdate}'` : `date_created < '${beforedate}'`}`
         text = text + queryText
     }
@@ -39,8 +41,14 @@ const allTasks = async (req, res) => {
         if(!uuid){
             res.status(404).json({msg: 'no uuid provided'})
         }
+
         const {rows} = await db.query(text)
-        res.status(200).json({uuid: uuid, rows: rows})
+
+        if(rows.length > 0){
+            res.status(200).json({uuid: uuid, rows: rows})
+        }else{
+            res.status(404).json({uuid: uuid, rows: rows, msg: 'no tasks found'})
+        }
     }catch(err){
         console.log(err)
     }
@@ -54,7 +62,7 @@ const updateTask = async (req, res) => {
         if(taskId && newTaskName && uuid){
             status = await db.query(`UPDATE task SET task_name = '${newTaskName}', due_date = '${newDueDate}' WHERE task_id = ${taskId} AND uuid = '${uuid}'`)
 
-            res.status(200).json({success: status, newTask: {taskid, newTaskName, newDueDate, uuid}})
+            res.status(200).json({success: status, newTask: {taskId, newTaskName, newDueDate, uuid}})
         }else{
             res.json({success: false, msg: 'missing info'})
         }
