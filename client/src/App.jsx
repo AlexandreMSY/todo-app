@@ -5,8 +5,6 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css'
 import EditTask from './components/EditTask';
 
-const currentDate = new Date().toISOString().slice(0, 10)
-
 const fetchApi = async (url, params) => {
   const req = await fetch(url, params)
   const res = await req.json()
@@ -78,11 +76,12 @@ function App() {
 
   //add task
   const addTask = async () => {
+    const currentDate = new Date().toISOString().slice(0, 10)
 
     const body = {
       taskName: inputs.taskName,
       dateCreated: currentDate,
-      dueDate: !inputs.expireDate ? currentDate : inputs.expireDate,
+      dueDate: inputs.expireDate,
       uuid: uuid
     }
 
@@ -92,10 +91,6 @@ function App() {
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(body)
     })
-
-    console.log(inputs);
-    console.log(body.dueDate);
-    console.log(body.uuid);
 
     await fetchTasks()
     setInputs(prevState => ({expireDate: prevState.expireDate = undefined}))
@@ -126,7 +121,7 @@ function App() {
     const body = {
       taskId: taskInfo.taskId,
       newTaskName: inputs.newTaskName,
-      newDueDate: !inputs.newExpireDate ? currentDate : inputs.newExpireDate,
+      newDueDate: inputs.newExpireDate,
       uuid: uuid
     }
 
