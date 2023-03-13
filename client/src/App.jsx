@@ -34,7 +34,7 @@ function App() {
   const [taskInfo, setTaskInfo] = useState({})
   const [uuid, setUuid] = useState()
   const [inputs, setInputs] = useState({})
-  const [addTaskPopUp, setAddTaskPopUp] = useState(false)
+  const [showTaskPopUp, setShowTaskPopUp] = useState(false)
   const [editTaskPopUp, setEditTaskPopUp] = useState(false)
   const newTaskNameRef = useRef('')
   const cookieCreated = useRef(false)
@@ -94,7 +94,7 @@ function App() {
 
     await fetchTasks()
     setInputs(prevState => ({expireDate: prevState.expireDate = undefined}))
-    setAddTaskPopUp(prevState => prevState = !prevState)
+    setShowTaskPopUp(prevState => prevState = !prevState)
   }
 
   //delete task
@@ -143,15 +143,15 @@ function App() {
         <div className='d-flex flex-column justify-content-center shadow border border-1 position-relative container-md p-2'>
             <div className='d-flex flex-row justify-content-between m-2'>
               <h3>Todos ({tasks.tasksCount})</h3>
-              <button className='btn btn-primary' onClick={() => {setAddTaskPopUp(prevState => prevState = !prevState)}}>Add Task</button>
+              <button className='btn btn-primary' onClick={() => {setShowTaskPopUp(prevState => prevState = !prevState)}}>Add Task</button>
             </div> 
 
-            {addTaskPopUp &&
+            {showTaskPopUp &&
               <div className='d-flex justify-content-center'>
                 <div className='border position-absolute' style={{width: '80%'}}>
                   <AddTask
                     submitOnClick = {() => {addTask()}} 
-                    cancelOnClick = {() => {setAddTaskPopUp(prevState => prevState = !prevState)}}
+                    cancelOnClick = {() => {setShowTaskPopUp(prevState => prevState = !prevState)}}
                     handleChange = {handleChange} 
                   />
                 </div>
@@ -173,16 +173,16 @@ function App() {
 
             <div className='d-flex flex-column gap-1 m-2'>
               {tasks.tasksCount ? tasks.tasks.map((item) => 
-              <Task 
-                key={item.task_id} 
-                taskName={item.task_name} 
-                //date={dateConverter(item.date_created)}
-                dueDate={dateConverter(item.due_date)}
-                deleteBtnAction={() => deleteTask(item.task_id)}
-                editBtnAction={() => {
-                  newTaskNameRef.current = item.task_name
-                  setTaskInfo(prevState => ({taskName: prevState.taskName = item.task_name, taskId: prevState.taskName = item.task_id}))
-                  setEditTaskPopUp(prevState => prevState = !prevState)
+                <Task 
+                  key={item.task_id} 
+                  taskName={item.task_name} 
+                  //date={dateConverter(item.date_created)}
+                  dueDate={dateConverter(item.due_date)}
+                  deleteBtnAction={() => deleteTask(item.task_id)}
+                  editBtnAction={() => {
+                    newTaskNameRef.current = item.task_name
+                    setTaskInfo(prevState => ({taskName: prevState.taskName = item.task_name, taskId: prevState.taskName = item.task_id}))
+                    setEditTaskPopUp(prevState => prevState = !prevState)
                 }}
               />) : <h3 className='text-center border p-4'>No Todos</h3>}
             </div>

@@ -8,11 +8,11 @@ const createTask = async (req, res) => {
 
     try{
         if(!taskName && !dateCreated && !uuid){
-            return res.status(500).json({success: false, msg: 'body cannot be null'})
+            return res.status(404).json({success: false, msg: 'body cannot be null'})
         }else{
             db.query(text)
             let jsonMessage = {success: true, msg: 'task created', task: {taskname: taskName, datecreated: dateCreated, uuid: uuid}}
-            res.status(200).json(jsonMessage)
+            res.status(201).json(jsonMessage)
         }
     }catch(err){
         console.log(err)
@@ -54,9 +54,9 @@ const updateTask = async (req, res) => {
         if(taskId && newTaskName && uuid){
             status = await db.query(`UPDATE task SET task_name = '${newTaskName}', due_date = '${newDueDate}' WHERE task_id = ${taskId} AND uuid = '${uuid}'`)
 
-            res.status(200).json({success: status, newTask: {taskid, newTaskName, newDueDate, uuid}})
+            res.status(201).json({success: status, newTask: {taskId, newTaskName, newDueDate, uuid}})
         }else{
-            res.json({success: false, msg: 'missing info'})
+            res.status(400).json({success: false, msg: 'missing info'})
         }
     }catch(err){
         return err

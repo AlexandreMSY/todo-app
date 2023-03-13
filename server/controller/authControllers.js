@@ -21,7 +21,7 @@ const createUsers = async (req, res) => {
         res.cookie('user', uuid, cookieOptions)
         await db.query(`INSERT INTO user_details (hostname, uuid) VALUES ('${hostName}', '${uuid}')`)
 
-        res.status(200).json({cookieCreated: true, hostname: hostName, uuid: uuid})
+        res.status(201).json({cookieCreated: true, hostname: hostName, uuid: uuid})
     }else{
         res.status(200).json({cookieCreated: false, hostname: hostName, uuid: cookie})
     }
