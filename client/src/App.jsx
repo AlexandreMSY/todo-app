@@ -5,6 +5,8 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css'
 import EditTask from './components/EditTask';
 
+const currentDate = new Date().toISOString().slice(0, 10)
+
 const fetchApi = async (url, params) => {
   const req = await fetch(url, params)
   const res = await req.json()
@@ -30,14 +32,13 @@ const getUuid = async () => {
 }
 
 function App() {
-  const [tasks, setTasks] = useState({})
-  const [taskInfo, setTaskInfo] = useState({})
+  const [tasks, setTasks] = useState({ tasks: [], tasksCount: 0 })
   const [uuid, setUuid] = useState()
-  const [inputs, setInputs] = useState({})
-  const [showTaskPopUp, setShowTaskPopUp] = useState(false)
-  const [editTaskPopUp, setEditTaskPopUp] = useState(false)
-  const newTaskNameRef = useRef('')
-  const cookieCreated = useRef(false)
+  const [inputs, setInputs] = useState({ taskName: '', expireDate: '' })
+  const [popUp, showPopUp] = useState({ addTaskPopUp: false, editTaskPopUp: false })
+  const newTaskName = useRef('')
+  const newDate = useRef('')
+  const editTaskId = useRef('')
 
   const fetchTasks = async () => {
     const prevLength = tasks.tasksCount;
@@ -56,13 +57,15 @@ function App() {
     in case the current task length fetched is the same as the previous length, it just fetches the api again
     */
     
-    setTasks(prevState => ({tasks: prevState.tasks = res.rows, tasksCount: prevState.tasksCount = res.rows.length}))
-    setUuid(prevState => prevState = uuid)
+    setTasks(prevState => ({
+      ...prevState, 
+      tasks: res.rows,
+      tasksCount: res.rows.length
+    }))
+    setUuid(uuid)
   }
 
   useEffect(() => {
-    if(cookieCreated.current) return
-    cookieCreated.current = true
     fetchTasks()
   }, [])
 
@@ -71,17 +74,18 @@ function App() {
     const name = event.target.name
     const value = event.target.value
 
-    setInputs(values => ({...values, [name]: value}))
+    setInputs(values => ({ ...values, [name]: value }))
+    console.log(inputs);
   }
 
   //add task
   const addTask = async () => {
-    const currentDate = new Date().toISOString().slice(0, 10)
+    const {taskName, expireDate} = inputs
 
     const body = {
-      taskName: inputs.taskName,
+      taskName: taskName,
       dateCreated: currentDate,
-      dueDate: inputs.expireDate,
+      dueDate: expireDate ? expireDate : currentDate,
       uuid: uuid
     }
 
@@ -93,8 +97,8 @@ function App() {
     })
 
     await fetchTasks()
-    setInputs(prevState => ({expireDate: prevState.expireDate = undefined}))
-    setShowTaskPopUp(prevState => prevState = !prevState)
+    setInputs({ taskName: '', expireDate: ''})
+    showPopUp(prevState => ({ ...prevState, addTaskPopUp: !addTaskPopUp }))
   }
 
   //delete task
@@ -116,12 +120,12 @@ function App() {
 
   //edit task
   const editTask = async () => {
-    setInputs(prevState => ({newTaskName: prevState.newTaskName = newTaskNameRef.current}))
+    const {taskName, expireDate} = inputs
 
     const body = {
-      taskId: taskInfo.taskId,
-      newTaskName: inputs.newTaskName,
-      newDueDate: inputs.newExpireDate,
+      taskId: editTaskId.current,
+      newTaskName: taskName,
+      newDueDate: expireDate,
       uuid: uuid
     }
 
@@ -133,26 +137,34 @@ function App() {
     })
 
     await fetchTasks()
-    setInputs(prevState => ({newExpireDate: prevState.newExpireDate = undefined}))
-    setEditTaskPopUp(prevState => prevState = !prevState)
+    showPopUp(prevState => prevState = !prevState)
   }
 
+  const allTasks = tasks.tasks
+  const tasksCount = tasks.tasksCount
+  const addTaskPopUp = popUp.addTaskPopUp
+  const editTaskPopUp = popUp.editTaskPopUp
 
   return(
     <>
         <div className='d-flex flex-column justify-content-center shadow border border-1 position-relative container-md p-2'>
             <div className='d-flex flex-row justify-content-between m-2'>
               <h3>Todos ({tasks.tasksCount})</h3>
-              <button className='btn btn-primary' onClick={() => {setShowTaskPopUp(prevState => prevState = !prevState)}}>Add Task</button>
+              <button className='btn btn-primary' onClick={() => {
+                showPopUp(prevState => ({...prevState, addTaskPopUp: !addTaskPopUp}))
+              }}>Add Task</button>
             </div> 
 
-            {showTaskPopUp &&
+            {addTaskPopUp &&
               <div className='d-flex justify-content-center'>
                 <div className='border position-absolute' style={{width: '80%'}}>
                   <AddTask
                     submitOnClick = {() => {addTask()}} 
-                    cancelOnClick = {() => {setShowTaskPopUp(prevState => prevState = !prevState)}}
-                    handleChange = {handleChange} 
+                    cancelOnClick = {() => {
+                      showPopUp(prevState => ({...prevState, addTaskPopUp: !addTaskPopUp}))
+                    }}
+                    handleChange = {handleChange}
+                    defaultDateValue = {currentDate}
                   />
                 </div>
               </div>
@@ -162,8 +174,11 @@ function App() {
               <div className='d-flex justify-content-center'>
                 <div className='border border-warning position-absolute'>
                   <EditTask
-                    newTaskNameValue = {newTaskNameRef.current}
-                    cancelOnClick = {() => {setEditTaskPopUp(prevState => prevState = !prevState)}}
+                    taskDefaultValue = {newTaskName.current}
+                    dateDefaultValue = {newDate.current}
+                    cancelOnClick = {() => {
+                      showPopUp(prevState => ({...prevState, editTaskPopUp: !editTaskPopUp}))
+                    }}
                     editOnClick = {() => editTask()}
                     handleChange = {handleChange}
                   />
@@ -172,17 +187,17 @@ function App() {
             }
 
             <div className='d-flex flex-column gap-1 m-2'>
-              {tasks.tasksCount ? tasks.tasks.map((item) => 
+              {tasksCount ? allTasks.map((item) => 
                 <Task 
                   key={item.task_id} 
                   taskName={item.task_name} 
-                  //date={dateConverter(item.date_created)}
                   dueDate={dateConverter(item.due_date)}
                   deleteBtnAction={() => deleteTask(item.task_id)}
                   editBtnAction={() => {
-                    newTaskNameRef.current = item.task_name
-                    setTaskInfo(prevState => ({taskName: prevState.taskName = item.task_name, taskId: prevState.taskName = item.task_id}))
-                    setEditTaskPopUp(prevState => prevState = !prevState)
+                    newTaskName.current = item.task_name
+                    newDate.current = item.due_date.slice(0, 10)
+                    editTaskId.current = item.task_id
+                    showPopUp(prevState => ({...prevState, editTaskPopUp: !editTaskPopUp}))
                 }}
               />) : <h3 className='text-center border p-4'>No Todos</h3>}
             </div>
