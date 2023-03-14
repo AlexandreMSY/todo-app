@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react'
-import Task from './components/Task';
 import AddTask from './components/AddTask';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css'
@@ -186,7 +185,7 @@ function App() {
             deleteTask={deleteTask}
             editTask={openEditPopUp}
             /> : <h3 className='text-center border p-4'>No Todos</h3>}
-            
+
           </div>
     </>
   )
