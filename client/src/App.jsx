@@ -4,25 +4,11 @@ import AddTask from './components/AddTask';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css'
 import EditTask from './components/EditTask';
+import TaskList from './components/TaskList';
+import fetchApi from './modules/fetchApi';
+import dateConverter from './modules/dateConverter';
 
 const currentDate = new Date().toISOString().slice(0, 10)
-
-const fetchApi = async (url, params) => {
-  const req = await fetch(url, params)
-  const res = await req.json()
-
-  return res
-}
-
-const dateConverter = (date) => {
-  const originalDate = new Date(date)
-  
-  const year = originalDate.getFullYear()
-  const month = originalDate.getMonth() + 1
-  const day = originalDate.getDate()
-
-  return `${day.toString().length > 1 ? day : `0${day}`}-${month.toString().length > 1 ? `${month}` : `0${month}`}-${year}`
-}
 
 const getUuid = async () => {
   const res = await fetchApi('http://localhost:5000/auth/createUser', {credentials: 'include', method:'post'})
@@ -62,6 +48,7 @@ function App() {
       tasks: res.rows,
       tasksCount: res.rows.length
     }))
+
     setUuid(uuid)
   }
 
@@ -125,7 +112,7 @@ function App() {
     const body = {
       taskId: editTaskId.current,
       newTaskName: taskName,
-      newDueDate: expireDate,
+      newDueDate: expireDate ? expireDate : currentDate,
       uuid: uuid
     }
 
@@ -138,6 +125,14 @@ function App() {
 
     await fetchTasks()
     showPopUp(prevState => prevState = !prevState)
+  }
+
+  const openEditPopUp = (taskName, dueDate, taskId) => {
+    newTaskName.current = taskName
+    newDate.current = String(dueDate).slice(0,10)
+    editTaskId.current = taskId
+
+    showPopUp(prevState => ({...prevState, editTaskPopUp: !editTaskPopUp}))
   }
 
   const allTasks = tasks.tasks
@@ -186,21 +181,12 @@ function App() {
               </div> 
             }
 
-            <div className='d-flex flex-column gap-1 m-2'>
-              {tasksCount ? allTasks.map((item) => 
-                <Task 
-                  key={item.task_id} 
-                  taskName={item.task_name} 
-                  dueDate={dateConverter(item.due_date)}
-                  deleteBtnAction={() => deleteTask(item.task_id)}
-                  editBtnAction={() => {
-                    newTaskName.current = item.task_name
-                    newDate.current = item.due_date.slice(0, 10)
-                    editTaskId.current = item.task_id
-                    showPopUp(prevState => ({...prevState, editTaskPopUp: !editTaskPopUp}))
-                }}
-              />) : <h3 className='text-center border p-4'>No Todos</h3>}
-            </div>
+            {tasksCount > 0 ? <TaskList 
+            tasks={allTasks}
+            deleteTask={deleteTask}
+            editTask={openEditPopUp}
+            /> : <h3 className='text-center border p-4'>No Todos</h3>}
+            
           </div>
     </>
   )
