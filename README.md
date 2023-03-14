@@ -56,7 +56,7 @@
 
 <p>I've made this project in order to put what i learnt watching front-end and back-end tutorials in pratice.</p>
 
-<p>This is a CRUD based web application, featuring an back-end API made with <strong>Node.JS</strong> and <strong>Express</strong> which connects to a <strong>PostgreSQL</strong> database. It also features an front-end page built using <strong>React.JS</strong> and it is fully responsive.</p>
+<p>This is a CRUD based web application, featuring a back-end API made with <strong>Node.JS</strong> and <strong>Express</strong> which connects to a <strong>PostgreSQL</strong> database. It also features a front-end page built using <strong>React.JS</strong> and it is fully responsive.</p>
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
